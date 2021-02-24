@@ -522,6 +522,7 @@ namespace mcpe_viz {
         uint8_t blockdata;
         int32_t blockid;
 
+
         // we operate on sets of 16 rows (which is one chunk high) of image z
         int32_t runCt = 0;
         for (int32_t imageZ = 0, chunkZ = minChunkZ; imageZ < imageH; imageZ += 16, chunkZ++) {

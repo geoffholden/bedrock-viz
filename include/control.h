@@ -57,6 +57,10 @@ namespace mcpe_viz {
         bool quietFlag;
         char helpFlags;
         bool tryDbRepair;
+
+        bool limitX[kDimIdCount], limitZ[kDimIdCount];
+        int32_t limitXMin[kDimIdCount], limitXMax[kDimIdCount];
+        int32_t limitZMin[kDimIdCount], limitZMax[kDimIdCount];
         int32_t movieX, movieY, movieW, movieH;
 
         int32_t heightMode;
@@ -123,6 +127,10 @@ namespace mcpe_viz {
                 fnLayerSlimeChunks[did] = "";
                 fnLayerShadedRelief[did] = "";
                 fnLayerGrass[did] = "";
+
+                limitX[did] = limitZ[did] = false;
+                limitXMin[did] = limitXMax[did] = 0;
+                limitZMin[did] = limitZMax[did] = 0;
                 for (int32_t i = 0; i <= MAX_BLOCK_HEIGHT; i++) {
                     fnLayerRaw[did][i] = "";
                 }

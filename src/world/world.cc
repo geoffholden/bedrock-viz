@@ -32,6 +32,23 @@ namespace
         }
         return true;
     }
+
+    bool limitedChunkPos(int32_t did, int32_t chunkX, int32_t chunkZ)
+    {
+        if (mcpe_viz::control.limitX[did] && chunkX < mcpe_viz::control.limitXMin[did]) {
+            return false;
+        }
+        if (mcpe_viz::control.limitX[did] && chunkX > mcpe_viz::control.limitXMax[did]) {
+            return false;
+        }
+        if (mcpe_viz::control.limitZ[did] && chunkZ < mcpe_viz::control.limitZMin[did]) {
+            return false;
+        }
+        if (mcpe_viz::control.limitZ[did] && chunkZ > mcpe_viz::control.limitZMax[did]) {
+            return false;
+        }
+        return true;
+    }
 }
 
 namespace mcpe_viz
@@ -219,7 +236,7 @@ namespace mcpe_viz
                 // sanity checks
                 if (chunkType == 0x30) {
                     // pre-0.17 chunk block data
-                    if (legalChunkPos(chunkX, chunkZ)) {
+                    if (legalChunkPos(chunkX, chunkZ) && limitedChunkPos(0, chunkX, chunkZ)) {
                         dimDataList[0]->addToChunkBounds(chunkX, chunkZ);
                     }
                 }
@@ -232,7 +249,7 @@ namespace mcpe_viz
 
                 // sanity checks
                 if (chunkType == 0x2f) {
-                    if (legalChunkPos(chunkX, chunkZ)) {
+                    if (legalChunkPos(chunkX, chunkZ) && limitedChunkPos(0, chunkX, chunkZ)) {
                         dimDataList[0]->addToChunkBounds(chunkX, chunkZ);
                     }
                 }
@@ -246,7 +263,7 @@ namespace mcpe_viz
 
                 // sanity checks
                 if (chunkType == 0x30) {
-                    if (legalChunkPos(chunkX, chunkZ)) {
+                    if (legalChunkPos(chunkX, chunkZ) && limitedChunkPos(chunkDimId, chunkX, chunkZ)) {
                         dimDataList[chunkDimId]->addToChunkBounds(chunkX, chunkZ);
                     }
                 }
@@ -260,7 +277,7 @@ namespace mcpe_viz
 
                 // sanity checks
                 if (chunkType == 0x2f) {
-                    if (legalChunkPos(chunkX, chunkZ)) {
+                    if (legalChunkPos(chunkX, chunkZ) && limitedChunkPos(chunkDimId, chunkX, chunkZ)) {
                         dimDataList[chunkDimId]->addToChunkBounds(chunkX, chunkZ);
                     }
                 }
@@ -556,6 +573,10 @@ namespace mcpe_viz
                 // we check for corrupt chunks
                 if (!legalChunkPos(chunkX, chunkZ)) {
                     log::warn("Found a chunk with invalid chunk coordinates cx={} cz={}", chunkX, chunkZ);
+                    continue;
+                }
+
+                if (!limitedChunkPos(chunkDimId, chunkX, chunkZ)) {
                     continue;
                 }
 

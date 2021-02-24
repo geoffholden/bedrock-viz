@@ -1904,94 +1904,82 @@ function setLayer(fn, extraHelp) {
     }
 
     setLayerLoadListeners(srcLayerMain, fn);
+    map.removeLayer(layerMain);
     
-    if (layerMain === null) {
-        if ( useTilesFlag ) {
-            layerMain = new ol.layer.Tile({
-                myStackOrder: 0,
-                preload: Infinity,
-                projection: projection,
-                extent: extent,
-                source: srcLayerMain
-            });
-        } else { 
-            layerMain = new ol.layer.Image({
-                myStackOrder: 0,
-                source: srcLayerMain
-            });
-        }
-        map_addLayer(layerMain);
-
-        if ( false ) {
-            // for tile debugging...
-            map.addLayer( new ol.layer.Tile({
-                source: new ol.source.TileDebug({
-                    projection: projection,
-                    tileGrid: srcLayerMain.getTileGrid()
-                })
-            }) );
-        }
-        
-        // get the pixel position with every move
-        $(map.getViewport()).on('mousemove', function(evt) {
-            globalMousePosition = map.getEventPixel(evt.originalEvent);
-            // todo - is this too expensive? is there a better way?
-            map.render();
-        }).on('mouseout', function() {
-            globalMousePosition = null;
-            map.render();
+    if ( useTilesFlag ) {
+        layerMain = new ol.layer.Tile({
+            myStackOrder: 0,
+            preload: Infinity,
+            projection: projection,
+            extent: extent,
+            source: srcLayerMain
         });
+    } else { 
+        layerMain = new ol.layer.Image({
+            myStackOrder: 0,
+            source: srcLayerMain
+        });
+    }
+    map_addLayer(layerMain);
 
-        layerMain.on('postcompose', function(event) {
-            try {
-                var ctx = event.context;
-                var pixelRatio = event.frameState.pixelRatio;
-                pixelDataName = '';
-                if (globalMousePosition && 
-                    ((globalLayerMode === 0 && (globalLayerId === 0 || globalLayerId === 1)) || globalLayerMode !== 0)) {
-                    // todo - this appears to be slightly off at times (e.g. block does not change crisply at src pixel boundaries)
-                    var x = globalMousePosition[0] * pixelRatio;
-                    var y = globalMousePosition[1] * pixelRatio;
-                    var pre = '';
-                    pixelData = ctx.getImageData(x, y, 1, 1).data;
-                    var cval = (pixelData[0] << 16) | (pixelData[1] << 8) | pixelData[2];
-                    if (globalLayerMode === 0 && globalLayerId === 1) {
-                        pre = 'Biome';
-                        if ( biomeColorLUT['' + cval] !== undefined ) {
-                            pixelDataName = biomeColorLUT['' + cval].name;
-                        }
-                    } else {
-                        pre = 'Block';
-                        if ( blockColorLUT['' + cval] !== undefined ) {
-                            pixelDataName = blockColorLUT['' + cval].name;
-                        }
+    if ( false ) {
+        // for tile debugging...
+        map.addLayer( new ol.layer.Tile({
+            source: new ol.source.TileDebug({
+                projection: projection,
+                tileGrid: srcLayerMain.getTileGrid()
+            })
+        }) );
+    }
+    
+
+    layerMain.on('postcompose', function(event) {
+        try {
+            var ctx = event.context;
+            var pixelRatio = event.frameState.pixelRatio;
+            pixelDataName = '';
+            if (globalMousePosition && 
+                ((globalLayerMode === 0 && (globalLayerId === 0 || globalLayerId === 1)) || globalLayerMode !== 0)) {
+                // todo - this appears to be slightly off at times (e.g. block does not change crisply at src pixel boundaries)
+                var x = globalMousePosition[0] * pixelRatio;
+                var y = globalMousePosition[1] * pixelRatio;
+                var pre = '';
+                pixelData = ctx.getImageData(x, y, 1, 1).data;
+                var cval = (pixelData[0] << 16) | (pixelData[1] << 8) | pixelData[2];
+                if (globalLayerMode === 0 && globalLayerId === 1) {
+                    pre = 'Biome';
+                    if ( biomeColorLUT['' + cval] !== undefined ) {
+                        pixelDataName = biomeColorLUT['' + cval].name;
                     }
-                    if (pixelDataName === undefined || pixelDataName === '') {
-                        if (pixelData[0] === 0 && pixelData[1] === 0 && pixelData[2] === 0) {
-                            pixelDataName = '(<i>Here be Monsters</i> -- unexplored chunk)';
-                        } else {
-                            pixelDataName = '<span class="lgray">' + pre + '</span> ' + 'Unknown RGB: ' + pixelData[0] + ' ' + pixelData[1] + ' ' + pixelData[2] + ' (' + cval + ')';
-                        }
-                    } else {
-                        pixelDataName = '<span class="lgray">' + pre + '</span> ' + pixelDataName;
+                } else {
+                    pre = 'Block';
+                    if ( blockColorLUT['' + cval] !== undefined ) {
+                        pixelDataName = blockColorLUT['' + cval].name;
                     }
                 }
-            } catch (e) {
-                pixelDataName = '<i>Browser will not let us access map pixels - See README</i>';
-                if ( ! globalCORSWarningFlag ) {
-                    doModal('CORS Error',
-                            'Error accessing map pixels.<br/><br/>' +
-                            'Error: ' + e.toString() + '<br/><br/>' +
-                            globalCORSWarning);
-                    globalCORSWarningFlag = true;
+                if (pixelDataName === undefined || pixelDataName === '') {
+                    if (pixelData[0] === 0 && pixelData[1] === 0 && pixelData[2] === 0) {
+                        pixelDataName = '(<i>Here be Monsters</i> -- unexplored chunk)';
+                    } else {
+                        pixelDataName = '<span class="lgray">' + pre + '</span> ' + 'Unknown RGB: ' + pixelData[0] + ' ' + pixelData[1] + ' ' + pixelData[2] + ' (' + cval + ')';
+                    }
+                } else {
+                    pixelDataName = '<span class="lgray">' + pre + '</span> ' + pixelDataName;
                 }
             }
-        });
-        
-        disableLayerSmoothing(layerMain);
-    } else {
-        layerMain.setSource(srcLayerMain);
-    }
+        } catch (e) {
+            pixelDataName = '<i>Browser will not let us access map pixels - See README</i>';
+            if ( ! globalCORSWarningFlag ) {
+                doModal('CORS Error',
+                        'Error accessing map pixels.<br/><br/>' +
+                        'Error: ' + e.toString() + '<br/><br/>' +
+                        globalCORSWarning);
+                globalCORSWarningFlag = true;
+            }
+        }
+    });
+    
+    disableLayerSmoothing(layerMain);
 
     if ( vectorPoints ) {
         // update vector points (e.g. up/down/same markers if we are in raw layer mode and blocks are shown)

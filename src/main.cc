@@ -447,6 +447,8 @@ namespace mcpe_viz {
 			("movie-dim", "Integers describing the bounds of the movie (UL X, UL Y, WIDTH, HEIGHT)")
 			("grid", value<std::vector<std::string>>()->implicit_value(kDimIdAllStrings, kDimIdAllStr)
 				->multitoken()->zero_tokens(), "Display chunk grid on top of images")
+			("limit-x", value<std::string>(), "Dimension,Min,max of X chunk coordinates")
+			("limit-z", value<std::string>(), "Dimension,Min,max of Z chunk coordinates")
 			("html", "Create html and javascript files to use as a fancy viewer")
 			("html-most", "Create html, javascript, and most image files to use as a fancy viewer")
 			("html-all", "Create html, javascript, and *all* image files to use as a fancy viewer")
@@ -678,6 +680,42 @@ namespace mcpe_viz {
 			// --grid[=did]
 			if (vm.count("grid")) {
 				control.doGrid = parseDimIdOptArgs(vm["grid"].as<std::vector<std::string>>());
+			}
+			// --limit-x did,min,max
+			if (vm.count("limit-x")) {
+				std::string optarg = vm["limit-x"].as<std::string>();
+                int32_t did, min, max;
+				// limit range
+				if (sscanf(optarg.c_str(), "%d,%d,%d", &did, &min, &max) == 3) {
+                    if (did >= 0 && did < kDimIdCount) {
+                        // good
+                        control.limitX[did] = true;
+                        control.limitXMin[did] = min;
+                        control.limitXMax[did] = max;
+                    }
+				}
+				else {
+					log::error("Failed to parse --limit-x ({})", optarg.c_str());
+					errct++;
+				}
+			}
+			// --limit-z did,min,max
+			if (vm.count("limit-z")) {
+				std::string optarg = vm["limit-z"].as<std::string>();
+                int32_t did, min, max;
+				// limit range
+				if (sscanf(optarg.c_str(), "%d,%d,%d", &did, &min, &max) == 3) {
+                    if (did >= 0 && did < kDimIdCount) {
+                        // good
+                        control.limitZ[did] = true;
+                        control.limitZMin[did] = min;
+                        control.limitZMax[did] = max;
+                    }
+				}
+				else {
+					log::error("Failed to parse --limit-z ({})", optarg.c_str());
+					errct++;
+				}
 			}
 			// --html
 			if (vm.count("html")) {
