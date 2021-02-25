@@ -2125,6 +2125,15 @@ function initDimension() {
                 resolution: 1
             })
         });
+        // get the pixel position with every move
+        $(map.getViewport()).on('mousemove', function(evt) {
+            globalMousePosition = map.getEventPixel(evt.originalEvent);
+            // todo - is this too expensive? is there a better way?
+            map.render();
+        }).on('mouseout', function() {
+            globalMousePosition = null;
+            map.render();
+        });
     } else {
         var view = new ol.View({
             projection: projection,
