@@ -2172,7 +2172,13 @@ namespace mcpe_viz
                 else if (tileEntity->id == "ItemFrame") {
                     // todo - new for 0.14
                     // todo - anything interesting?
-                    // todo - Item; ItemDropChance; ItemRotation
+                    // todo - ItemDropChance; ItemRotation
+                    tileEntity->containerFlag = true;
+                    if (tc.has_key("Item", nbt::tag_type::Compound)) {
+                        nbt::tag_compound i = tc["Item"].as<nbt::tag_compound>();
+                        tileEntity->addItem(i);
+                    }
+                    parseFlag = true;
                 }
                 else if (tileEntity->id == "Comparator") {
                     // todo - new for 0.14
